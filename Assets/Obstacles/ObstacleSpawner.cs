@@ -7,6 +7,7 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private ObjectPool pool;
     [SerializeField] private RoadData roadData;
     [SerializeField] private List<ObstacleData> obstacleTypes;
+    [SerializeField] private List<GameObject> bonuses;
 
     [SerializeField, Min(0.1f)]
     private float spawnDuration = 1f;
@@ -18,7 +19,11 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField]
     private float spawnChancePerLane = 0.5f;
 
-    public UnityEvent<float> ApplyDamage;
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float bonusChancePerLane = 0.5f;
+
+    public UnityEvent<int> ApplyDamage;
 
     [SerializeField] private Player player;
 
@@ -35,7 +40,14 @@ public class ObstacleSpawner : MonoBehaviour
         {
             if (Random.value <= spawnChancePerLane)
             {
-                CreateObstacle(lane);
+                if (Random.value <= bonusChancePerLane)
+                {
+                    CreateBonus(lane);
+                }
+                else
+                {
+                    CreateObstacle(lane);
+                }
             }
         }
     }
@@ -54,6 +66,18 @@ public class ObstacleSpawner : MonoBehaviour
             lane,
             obstacleTypes[Random.Range(0, obstacleTypes.Count)],
             pool,
+            spawnZ,
+            player
+        );
+    }
+
+    private void CreateBonus(int lane)
+    {
+        GameObject obj = Instantiate(bonuses[Random.Range(0, bonuses.Count)]);
+        BonusScript script = obj.GetComponent<BonusScript>();
+
+        script.Initialize(
+            lane,
             spawnZ,
             player
         );

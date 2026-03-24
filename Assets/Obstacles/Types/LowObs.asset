@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bbda47ad4729d94d9908db847892c15, type: 3}
   m_Name: LowObs
   m_EditorClassIdentifier: 
-  damage: 10
+  damage: 1
   height: 1.5
   meta: {fileID: 11400000, guid: ee76f9e92bc212a4983ee67db73a0ee1, type: 2}

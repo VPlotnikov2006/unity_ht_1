@@ -58,9 +58,11 @@
     },
     "dotnet.defaultSolution": "HomeAssignment_1.sln",
     "cSpell.words": [
+        "healthbar",
         "Lerp",
         "Mathf",
         "Rigidbody",
+        "scorebar",
         "Tweening"
     ]
 }

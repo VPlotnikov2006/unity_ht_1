@@ -9,7 +9,9 @@ using UnityEngine.Events;
 public class Player : MonoBehaviour
 {
     [SerializeField] new Camera camera;
-    [SerializeField] private float maxHp = 100;
+    public int maxHp = 100;
+
+    [SerializeField] private ParticleSystem hitParticles;
     [SerializeField] private Color startColor;
     [SerializeField] private Color deathColor;
 
@@ -24,8 +26,10 @@ public class Player : MonoBehaviour
     [SerializeField] private float continuousLaneChangeDelay = 0.05f;
 
     public UnityEvent OnRestart;
+    public UnityEvent OnHealthChange;
+    public UnityEvent OnDeath;
 
-    private float currentHp;
+    public int currentHp;
 
     private uint jumpsCount = 0;
     private Rigidbody rb;
@@ -47,10 +51,18 @@ public class Player : MonoBehaviour
 
         InitializeLanes();
 
-        Restart();
+        Init();
     }
 
-    void Restart()
+    public void Restart()
+    {
+        Init();
+
+        OnRestart?.Invoke();
+        OnHealthChange?.Invoke();
+    }
+
+    public void Init()
     {
         mr.material.color = startColor;
 
@@ -62,8 +74,6 @@ public class Player : MonoBehaviour
             transform.localScale.y / 2f,
             0
         );
-
-        OnRestart?.Invoke();
     }
 
     private void InitializeLanes()
@@ -159,16 +169,50 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void TakeDamage(float damage)
+    public void TakeDamage(int damage)
     {
-        if (currentHp < damage)
+        Debug.Log($"Ouch {damage}");
+
+        if (currentHp <= damage)
         {
-            Restart();
+            OnDeath?.Invoke();
         }
         else
         {
             currentHp -= damage;
-            mr.material.color = Color.Lerp(startColor, deathColor, (maxHp - currentHp) / maxHp);
+
+            float t = (maxHp - currentHp) * 1f / maxHp;
+            Color targetColor = startColor.LerpHSV(deathColor, t);
+            Color start = mr.material.color;
+
+            DOTween.To(() => 0f, value =>
+            {
+                mr.material.color = start.LerpHSV(targetColor, value);
+            }, 1f, 0.2f).SetEase(Ease.Linear);
+            
+            hitParticles.Play();
+            OnHealthChange?.Invoke();
         }
+    }
+
+    public void ExtraLives(int amount)
+    {
+        currentHp = Math.Min(maxHp, currentHp + amount);
+
+        float t = (maxHp - currentHp) * 1f / maxHp;
+        Color targetColor = startColor.LerpHSV(deathColor, t);
+        Color start = mr.material.color;
+
+        DOTween.To(() => 0f, value =>
+        {
+            mr.material.color = start.LerpHSV(targetColor, value);
+        }, 1f, 0.2f).SetEase(Ease.Linear);
+
+        OnHealthChange?.Invoke();
+    }
+
+    public void Invincibility(float duration)
+    {
+        Debug.Log($"Invincible for {duration}");
     }
 }

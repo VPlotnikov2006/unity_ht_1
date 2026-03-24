@@ -5,7 +5,7 @@ public class ObstacleScript : MonoBehaviour
 {
     [SerializeField] private RoadData road;
 
-    public UnityEvent<float> ApplyDamage;
+    public UnityEvent<int> ApplyDamage;
     public ObstacleData data;
 
     [Min(0)]
