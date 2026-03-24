@@ -6,9 +6,16 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+enum StartMenu
+{
+    Game,
+    MainMenu
+}
+
 [RequireComponent(typeof(UIDocument))]
 public class InterfaceController : MonoBehaviour
 {
+    [SerializeField] private StartMenu start;
     [SerializeField] private Player player;
 
     private UIDocument document;
@@ -70,7 +77,15 @@ public class InterfaceController : MonoBehaviour
 
     void Start()
     {
-        StartGame();
+        switch (start)
+        {
+            case StartMenu.Game:
+                StartGame();
+                break;
+            case StartMenu.MainMenu:
+                EnterMainMenu();
+                break;
+        }
     }
 
     void SetupGameUI()

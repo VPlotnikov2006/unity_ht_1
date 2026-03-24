@@ -11,7 +11,10 @@ public class Player : MonoBehaviour
     [SerializeField] new Camera camera;
     public int maxHp = 100;
 
+    [Header("Effects")]
     [SerializeField] private ParticleSystem hitParticles;
+    [SerializeField] private ParticleSystem hpParticles;
+    [SerializeField] private ParticleSystem invParticles;
     [SerializeField] private Color startColor;
     [SerializeField] private Color deathColor;
 
@@ -41,6 +44,10 @@ public class Player : MonoBehaviour
 
     private float[] lanesX;
     private Tweener laneTween;
+
+    private bool isInvincible;
+    private Tween invincibilityTween;
+    private Tween blinkTween;
 
     void Start()
     {
@@ -171,6 +178,11 @@ public class Player : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        if (isInvincible)
+        {
+            return;
+        }
+
         Debug.Log($"Ouch {damage}");
 
         if (currentHp <= damage)
@@ -208,11 +220,38 @@ public class Player : MonoBehaviour
             mr.material.color = start.LerpHSV(targetColor, value);
         }, 1f, 0.2f).SetEase(Ease.Linear);
 
+        hpParticles.Play();
+
         OnHealthChange?.Invoke();
     }
 
     public void Invincibility(float duration)
     {
         Debug.Log($"Invincible for {duration}");
+
+        isInvincible = true;
+
+        invincibilityTween?.Kill();
+        blinkTween?.Kill();
+
+        invParticles.Play();
+
+        blinkTween = DOTween.To(() => 1f, a =>
+        {
+            Color c = mr.material.color;
+            c.a = a;
+            mr.material.color = c;
+        }, 0.3f, 0.15f)
+        .SetLoops(-1, LoopType.Yoyo);
+
+        invincibilityTween = DOVirtual.DelayedCall(duration, () =>
+        {
+            isInvincible = false;
+            blinkTween?.Kill();
+
+            float t = (maxHp - currentHp) * 1f / maxHp;
+            mr.material.color = startColor.LerpHSV(deathColor, t);
+            Debug.Log("Invincibility ended");
+        });
     }
 }
